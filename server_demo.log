@@ -1,0 +1,11 @@
+[2025-07-25 15:48:28] [INFO] Starting SSH Server v3 with encryption support on port 2222
+[2025-07-25 15:48:28] [INFO] Server socket created and listening on port 2222
+[2025-07-25 15:48:28] [INFO] Server socket created and listening on port 2222
+[2025-07-25 15:48:28] [INFO] SSH Server v3 started on port 2222
+[2025-07-25 15:48:28] [INFO] SSH Protocol Version: SSH-2.0-MySSH_1.0
+[2025-07-25 15:48:28] [INFO] Key Exchange: Diffie-Hellman Group 1
+[2025-07-25 15:48:28] [INFO] Encryption: AES-256-CBC
+[2025-07-25 15:48:28] [INFO] Waiting for SSH connections...
+[2025-07-25 15:50:36] [INFO] Received shutdown signal
+[2025-07-25 15:50:36] [INFO] Shutting down SSH Server v3...
+[2025-07-25 15:50:36] [INFO] SSH Server v3 shutdown complete
