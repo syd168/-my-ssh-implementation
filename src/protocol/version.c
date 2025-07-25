@@ -21,14 +21,21 @@ ssh_result_t ssh_init_version_info(ssh_version_info_t *version, int is_server) {
         strncpy(version->comments, "client", sizeof(version->comments) - 1);
     }
     
-    // 构建完整版本字符串
-    snprintf(version->full_version, sizeof(version->full_version),
-             "SSH-%d.%d-%s_%s %s",
-             version->major_version,
-             version->minor_version,
-             version->software_name,
-             version->software_version,
-             version->comments);
+    // 构建完整版本字符串，使用更安全的方式
+    int ret = snprintf(version->full_version, sizeof(version->full_version),
+                      "SSH-%d.%d-%s_%s %s",
+                      version->major_version,
+                      version->minor_version,
+                      version->software_name,
+                      version->software_version,
+                      version->comments);
+    
+    // 检查是否截断
+    if (ret >= (int)sizeof(version->full_version)) {
+        log_message(LOG_WARN, "SSH version string truncated");
+        // 确保字符串以null结尾
+        version->full_version[sizeof(version->full_version) - 1] = '\0';
+    }
     
     log_message(LOG_DEBUG, "Initialized SSH version: %s", version->full_version);
     return SSH_OK;

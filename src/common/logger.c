@@ -1,10 +1,20 @@
 #include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <time.h>
 
 static log_level_t current_log_level = LOG_INFO;
 
 // 设置日志级别
 void set_log_level(log_level_t level) {
     current_log_level = level;
+}
+
+// 初始化日志系统
+void init_logger(log_level_t level) {
+    set_log_level(level);
 }
 
 // 获取日志级别字符串
@@ -55,6 +65,11 @@ const char* ssh_error_string(ssh_result_t error) {
         case SSH_ERROR_INVALID_PARAM:   return "Invalid parameter";
         case SSH_ERROR_TIMEOUT:         return "Operation timeout";
         case SSH_ERROR_CONNECTION_LOST: return "Connection lost";
+        case SSH_ERROR_PROTOCOL:        return "Protocol error";
+        case SSH_ERROR_CRYPTO:          return "Cryptographic error";
+        case SSH_ERROR_AUTH:            return "Authentication error";
+        case SSH_ERROR_KEX_FAILURE:     return "Key exchange failure";
+        case SSH_ERROR_BUFFER_TOO_SMALL: return "Buffer too small";
         default:                        return "Unknown error";
     }
 }
