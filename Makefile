@@ -40,9 +40,13 @@ PACKET_TEST_TARGET = test_packet
 AUTH_TEST_TARGET = test_auth
 CHANNEL_TEST_TARGET = test_channel
 APP_TEST_TARGET = test_app
+SSH_SERVER_FINAL_TARGET = ssh_server_final
+SSH_CLIENT_FINAL_TARGET = ssh_client_final
+SSH_SERVER_SIMPLE_TARGET = ssh_server_simple
+SSH_CLIENT_SIMPLE_TARGET = ssh_client_simple
 
 # 默认目标 - 编译所有SSH版本
-all: $(BUILD_DIR) $(SERVER_TARGET) $(CLIENT_TARGET) $(SSH_SERVER_TARGET) $(SSH_CLIENT_TARGET) $(SSH_SERVER_V3_TARGET) $(SSH_CLIENT_V3_TARGET) $(SSH_SERVER_V4_TARGET) $(SSH_CLIENT_V4_TARGET)
+all: $(BUILD_DIR) $(SERVER_TARGET) $(CLIENT_TARGET) $(SSH_SERVER_TARGET) $(SSH_CLIENT_TARGET) $(SSH_SERVER_V3_TARGET) $(SSH_CLIENT_V3_TARGET) $(SSH_SERVER_V4_TARGET) $(SSH_CLIENT_V4_TARGET) $(SSH_CLIENT_FINAL_TARGET) $(SSH_SERVER_FINAL_TARGET) $(SSH_SERVER_SIMPLE_TARGET) $(SSH_CLIENT_SIMPLE_TARGET)
 
 # 编译所有版本（与all相同，保持兼容性）
 all-versions: all
@@ -95,6 +99,26 @@ $(CHANNEL_TEST_TARGET): $(BUILD_DIR) $(PROTOCOL_DIR)/test_channel.c $(PROTOCOL_S
 $(APP_TEST_TARGET): $(BUILD_DIR) $(APP_DIR)/test_app.c $(APP_SOURCES) $(PROTOCOL_SOURCES_V3) $(CRYPTO_SOURCES) $(COMMON_SOURCES) $(NETWORK_SOURCES)
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $(APP_DIR)/test_app.c $(APP_SOURCES) $(PROTOCOL_SOURCES_V3) $(CRYPTO_SOURCES) $(COMMON_SOURCES) $(NETWORK_SOURCES) $(LDFLAGS)
 	@echo "SSH application layer test program built successfully: $(BUILD_DIR)/$@"
+
+# 编译最终版SSH服务器
+$(SSH_SERVER_FINAL_TARGET): $(BUILD_DIR) $(NETWORK_DIR)/ssh_server_final.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(PROTOCOL_SOURCES_V3) $(APP_SOURCES) $(CRYPTO_SOURCES)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $(NETWORK_DIR)/ssh_server_final.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(PROTOCOL_SOURCES_V3) $(APP_SOURCES) $(CRYPTO_SOURCES) $(LDFLAGS)
+	@echo "Final SSH Server built successfully: $(BUILD_DIR)/$@"
+
+# 编译最终版SSH客户端
+$(SSH_CLIENT_FINAL_TARGET): $(BUILD_DIR) $(NETWORK_DIR)/ssh_client_final.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(PROTOCOL_SOURCES_V3) $(APP_SOURCES) $(CRYPTO_SOURCES)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $(NETWORK_DIR)/ssh_client_final.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(PROTOCOL_SOURCES_V3) $(APP_SOURCES) $(CRYPTO_SOURCES) $(LDFLAGS)
+	@echo "Final SSH Client built successfully: $(BUILD_DIR)/$@"
+
+# 编译简化版SSH服务器
+$(SSH_SERVER_SIMPLE_TARGET): $(BUILD_DIR) $(NETWORK_DIR)/ssh_server_simple.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(PROTOCOL_SOURCES_V2)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $(NETWORK_DIR)/ssh_server_simple.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(PROTOCOL_SOURCES_V2) $(LDFLAGS)
+	@echo "Simple SSH Server built successfully: $(BUILD_DIR)/$@"
+
+# 编译简化版SSH客户端
+$(SSH_CLIENT_SIMPLE_TARGET): $(BUILD_DIR) $(NETWORK_DIR)/ssh_client_simple.c $(COMMON_SOURCES) $(NETWORK_SOURCES)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@ $(NETWORK_DIR)/ssh_client_simple.c $(COMMON_SOURCES) $(NETWORK_SOURCES) $(LDFLAGS)
+	@echo "Simple SSH Client built successfully: $(BUILD_DIR)/$@"
 
 # 清理构建文件
 clean:
@@ -185,6 +209,26 @@ run-ssh-client-v4: $(SSH_CLIENT_V4_TARGET)
 	@echo "Starting SSH client v4..."
 	./$(BUILD_DIR)/$(SSH_CLIENT_V4_TARGET)
 
+# 运行最终版SSH服务器
+run-ssh-server-final: $(SSH_SERVER_FINAL_TARGET)
+	@echo "Starting Final SSH Server..."
+	./$(BUILD_DIR)/$(SSH_SERVER_FINAL_TARGET)
+
+# 运行最终版SSH客户端
+run-ssh-client-final: $(SSH_CLIENT_FINAL_TARGET)
+	@echo "Starting Final SSH Client..."
+	./$(BUILD_DIR)/$(SSH_CLIENT_FINAL_TARGET)
+
+# 运行简化版SSH服务器
+run-ssh-server-simple: $(SSH_SERVER_SIMPLE_TARGET)
+	@echo "Starting Simple SSH Server..."
+	./$(BUILD_DIR)/$(SSH_SERVER_SIMPLE_TARGET)
+
+# 运行简化版SSH客户端
+run-ssh-client-simple: $(SSH_CLIENT_SIMPLE_TARGET)
+	@echo "Starting Simple SSH Client..."
+	./$(BUILD_DIR)/$(SSH_CLIENT_SIMPLE_TARGET)
+
 help:
 	@echo "Available targets:"
 	@echo "  all            - Build all SSH versions (阶段1-4: ssh_server, ssh_client, ssh_server_v2, ssh_client_v2, ssh_server_v3, ssh_client_v3, ssh_server_v4, ssh_client_v4)"
@@ -200,6 +244,10 @@ help:
 	@echo "  ssh_client_v3  - 阶段3: SSH client with key exchange"
 	@echo "  ssh_server_v4  - 阶段4: SSH server with encryption"
 	@echo "  ssh_client_v4  - 阶段4: SSH client with encryption"
+	@echo "  ssh_server_final - Final version: Full SSH implementation"
+	@echo "  ssh_client_final - Final version: Full SSH client"
+	@echo "  ssh_server_simple - Simple version: Basic SSH implementation with login"
+	@echo "  ssh_client_simple - Simple version: Basic SSH client"
 	@echo ""
 	@echo "Run targets:"
 	@echo "  run-server     - Run simple server v1 (阶段1)"
@@ -210,6 +258,10 @@ help:
 	@echo "  run-ssh-client-v3 - Run SSH client v3 (阶段3)"
 	@echo "  run-ssh-server-v4 - Run SSH server v4 (阶段4)"
 	@echo "  run-ssh-client-v4 - Run SSH client v4 (阶段4)"
+	@echo "  run-ssh-server-final - Run Final SSH server"
+	@echo "  run-ssh-client-final - Run Final SSH client"
+	@echo "  run-ssh-server-simple - Run Simple SSH server"
+	@echo "  run-ssh-client-simple - Run Simple SSH client"
 	@echo ""
 	@echo "Test targets:"
 	@echo "  test-ssh       - Build SSH v2 and show test instructions"
@@ -219,6 +271,7 @@ help:
 	@echo "  test-auth      - Build and run SSH authentication test"
 	@echo "  test-channel   - Build and run SSH channel management test"
 	@echo "  test-stage4    - Run stage 4 encryption tests"
+	@echo "  test-stage4-v4  - Run stage 4 v4 encryption tests"
 	@echo "  test-stage5    - Run stage 5 packet format tests"
 	@echo "  test-stage6    - Run stage 6 authentication tests"
 	@echo "  test-stage7    - Run stage 7 channel management tests"
@@ -284,6 +337,18 @@ test-stage8:
 	@echo "Running Stage 8 application layer tests..."
 	@chmod +x test_stage8.sh
 	$(MAKE) test-app
+
+# 最终版本测试
+test-final: $(SSH_SERVER_FINAL_TARGET) $(SSH_CLIENT_FINAL_TARGET)
+	@echo "Testing Final SSH version..."
+	@echo "Start the server in one terminal with: make run-ssh-server-final"
+	@echo "Then run the client in another terminal with: make run-ssh-client-final"
+
+# 简化版本测试
+test-simple: $(SSH_SERVER_SIMPLE_TARGET) $(SSH_CLIENT_SIMPLE_TARGET)
+	@echo "Testing Simple SSH version..."
+	@echo "Start the server in one terminal with: make run-ssh-server-simple"
+	@echo "Then run the client in another terminal with: make run-ssh-client-simple"
 
 # SSH版本演示
 demo-ssh: $(BUILD_DIR)

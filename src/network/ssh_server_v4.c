@@ -56,6 +56,7 @@ static void init_server_version(ssh_version_info_t *version) {
 // 初始化客户端信息
 static void init_client(ssh_client_info_v4_t *client) {
     memset(client, 0, sizeof(ssh_client_info_v4_t));
+    client->socket_fd = -1;  // 初始化套接字为无效值
     init_server_version(&client->version_info);
     client->state = SSH_STATE_VERSION_EXCHANGE;
     client->connect_time = time(NULL);
@@ -64,6 +65,12 @@ static void init_client(ssh_client_info_v4_t *client) {
 // 处理SSH版本交换
 static ssh_result_t handle_version_exchange(ssh_client_info_v4_t *client) {
     ssh_result_t result;
+    
+    // 检查套接字有效性
+    if (client->socket_fd < 0) {
+        log_message(LOG_ERROR, "Invalid socket file descriptor");
+        return SSH_ERROR_NETWORK;
+    }
     
     // 发送版本字符串
     result = ssh_send_version_string(client->socket_fd, &client->version_info);
@@ -117,13 +124,14 @@ static ssh_result_t handle_key_exchange(ssh_client_info_v4_t *client) {
     log_message(LOG_INFO, "Key exchange completed successfully");
     
     // 初始化加密上下文
-    // 修复：使用正确的字段
+    // 修复：交换加密和解密密钥，因为对于服务器来说，它使用客户端到服务器的密钥来解密数据
+    // 而使用服务器到客户端的密钥来加密数据
     result = ssh_enable_encryption(&client->kex_ctx.conn,
-                                   client->kex_ctx.encryption_key_server_to_client,  // 服务器到客户端加密密钥
                                    client->kex_ctx.encryption_key_client_to_server,  // 客户端到服务器解密密钥
+                                   client->kex_ctx.encryption_key_server_to_client,  // 服务器到客户端加密密钥
                                    client->kex_ctx.session_key_len,                  // 密钥长度
-                                   client->kex_ctx.iv_server_to_client,              // 服务器到客户端加密IV
-                                   client->kex_ctx.iv_client_to_server);             // 客户端到服务器解密IV
+                                   client->kex_ctx.iv_client_to_server,              // 客户端到服务器解密IV
+                                   client->kex_ctx.iv_server_to_client);             // 服务器到客户端加密IV
     if (result != SSH_OK) {
         log_message(LOG_ERROR, "Failed to initialize encryption context");
         return result;
@@ -142,9 +150,9 @@ static ssh_result_t send_encrypted_data(ssh_client_info_v4_t *client, const char
         aes_context_t aes_ctx;
         aes_result_t aes_result;
         
-        // 初始化AES加密上下文
+        // 初始化AES加密上下文，使用正确的加密密钥
         aes_result = aes_init(&aes_ctx, 
-                              client->encryption_ctx.encryption_key, 
+                              client->encryption_ctx.encryption_key,  // 使用加密密钥进行加密
                               client->encryption_ctx.key_len, 
                               client->encryption_ctx.encryption_iv);
         if (aes_result != AES_SUCCESS) {
@@ -180,9 +188,9 @@ static ssh_result_t receive_and_decrypt_data(ssh_client_info_v4_t *client, char 
         aes_context_t aes_ctx;
         aes_result_t aes_result;
         
-        // 初始化AES解密上下文
+        // 初始化AES解密上下文，使用正确的解密密钥
         aes_result = aes_init(&aes_ctx, 
-                              client->encryption_ctx.decryption_key, 
+                              client->encryption_ctx.decryption_key,  // 使用解密密钥进行解密
                               client->encryption_ctx.key_len, 
                               client->encryption_ctx.decryption_iv);
         if (aes_result != AES_SUCCESS) {
@@ -363,9 +371,11 @@ static int accept_client(int server_fd, struct sockaddr_in *client_addr, socklen
     // 查找可用的客户端槽位
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (g_clients[i].socket_fd < 0) {
+            // 先初始化客户端结构体
+            init_client(&g_clients[i]);
+            // 然后设置套接字和地址信息
             g_clients[i].socket_fd = client_fd;
             g_clients[i].address = *client_addr;
-            init_client(&g_clients[i]);
             return i;
         }
     }

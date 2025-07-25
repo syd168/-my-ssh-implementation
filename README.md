@@ -53,14 +53,47 @@ make ssh_server_v3 ssh_client_v3
 
 ## SSH版本说明
 
-项目实现了多个版本的SSH协议，每个版本具有不同的功能特性：
+项目包含多个版本的SSH实现，每个版本对应不同的开发阶段：
 
-| 版本 | 核心功能 | 服务器命令 | 客户端命令 |
-|------|----------|------------|------------|
-| v1 | 基础TCP通信 | `make run-server` | `make run-client` |
-| v2 | 协议版本协商 | `make run-ssh-server` | `make run-ssh-client` |
-| v3 | 完整SSH协议栈 | `make run-ssh-server-v3` | `make run-ssh-client-v3` |
-| v4 | 加密优化版本 | `make run-ssh-server-v4` | `make run-ssh-client-v4` |
+### 阶段一：基础网络通信
+- **ssh_server** / **ssh_client**: 基础TCP套接字通信实现
+- 运行命令：
+  ```bash
+  ./build/ssh_server
+  ./build/ssh_client
+  ```
+
+### 阶段二：协议版本协商
+- **ssh_server_v2** / **ssh_client_v2**: 实现SSH版本协商
+- 运行命令：
+  ```bash
+  ./build/ssh_server_v2
+  ./build/ssh_client_v2
+  ```
+
+### 阶段三：密钥交换
+- **ssh_server_v3** / **ssh_client_v3**: 实现Diffie-Hellman密钥交换和基本加密
+- 运行命令：
+  ```bash
+  ./build/ssh_server_v3
+  ./build/ssh_client_v3
+  ```
+
+### 阶段四：加密增强版
+- **ssh_server_v4** / **ssh_client_v4**: 实现增强的加密功能
+- 运行命令：
+  ```bash
+  ./build/ssh_server_v4
+  ./build/ssh_client_v4
+  ```
+
+### 最终版本：完整SSH实现
+- **ssh_server_final** / **ssh_client_final**: 实现完整的SSH功能，包括用户登录、文本通信和文件传输
+- 运行命令：
+  ```bash
+  ./build/ssh_server_final
+  ./build/ssh_client_final
+  ```
 
 ## 使用说明
 

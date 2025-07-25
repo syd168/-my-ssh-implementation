@@ -116,8 +116,13 @@ static ssh_result_t handle_key_exchange(ssh_client_info_v4_t *client) {
     
     log_message(LOG_INFO, "Key exchange completed successfully");
     
+    // 检查会话密钥长度是否有效
+    if (client->kex_ctx.session_key_len == 0) {
+        log_message(LOG_ERROR, "Invalid session key length: %u", client->kex_ctx.session_key_len);
+        return SSH_ERROR_CRYPTO;
+    }
+    
     // 初始化加密上下文
-    // 修复：使用正确的字段
     result = ssh_enable_encryption(&client->kex_ctx.conn,
                                    client->kex_ctx.encryption_key_client_to_server,  // 客户端到服务器加密密钥
                                    client->kex_ctx.encryption_key_server_to_client,  // 服务器到客户端解密密钥
