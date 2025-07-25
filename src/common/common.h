@@ -14,6 +14,7 @@
 #include <sys/select.h>
 #include <time.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 // 基本常量定义
 #define MAX_BUFFER_SIZE 4096
@@ -58,7 +59,7 @@ typedef enum {
     CONN_ERROR = 3
 } connection_state_t;
 
-#include <stdint.h>
+
 
 // SSH角色
 typedef enum {
